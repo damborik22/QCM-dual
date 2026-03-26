@@ -45,6 +45,7 @@ class Method:
     plot_y1: str = "delta_f"
     plot_y2: str = "none"
     plot_time_window: int = 600       # seconds
+    display_mode: str = "all"         # "all" = A+B+Diff, "diff" = Diff only
 ```
 
 **File format:** JSON with `.qcm` extension.
@@ -251,9 +252,9 @@ Right side: **Control Panel**
 
 ### Zone 2: Numeric displays (fixed height ~140px)
 
-Two side-by-side **DisplayPanel** cards (QFrame with styled border):
+Three side-by-side **DisplayPanel** cards (QFrame with styled border):
 
-Each card shows:
+**Card A** and **Card B** each show:
 | Label        | Value format          | Font     |
 |--------------|-----------------------|----------|
 | Frequency    | 9 979 521.207 Hz     | 18pt mono|
@@ -262,15 +263,27 @@ Each card shows:
 | ACG          | 1.4406 V             | 12pt mono|
 | Temperature  | 23.4 °C (or "---")   | 12pt mono|
 
+**Card Diff (A−B)** shows the differential signal:
+| Label        | Value format          | Font     |
+|--------------|-----------------------|----------|
+| Δf (A−B)     | −3.21 Hz             | 18pt mono|
+| Δm (A−B)     | 14.18 ng/cm²         | 14pt mono|
+
 - Card A has blue left border accent (#4fc3f7)
 - Card B has red left border accent (#ef5350)
+- Card Diff has green left border accent (#66bb6a)
 - Δf and Δm show "—" until tare is set
+- Differential values: Δf_diff = Δf_A − Δf_B, Δm_diff via Sauerbrey on Δf_diff
+
+**Display modes** (View menu or toolbar toggle):
+- **All channels**: show Card A + Card B + Card Diff (default)
+- **Differential only**: show only Card Diff (expanded width)
 
 ### Zone 3: Plot (stretches to fill, minimum 300px)
 
 **PlotWidget** toolbar (above plot):
-- QComboBox "Y1": Δf, Frequency, Δm, ACG, Temperature
-- QComboBox "Y2": None, Δf, Frequency, Δm, ACG, Temperature
+- QComboBox "Y1": Δf, Frequency, Δm, ACG, Temperature, Δf (A−B), Δm (A−B)
+- QComboBox "Y2": None, Δf, Frequency, Δm, ACG, Temperature, Δf (A−B), Δm (A−B)
 - QPushButtons: Tare, Autoscale, Clear
 
 Plot features:
@@ -279,6 +292,7 @@ Plot features:
 - Left Y axis: selected parameter, labeled with units
 - Right Y axis (optional): second parameter
 - Two lines: Ch A (blue #4fc3f7), Ch B (red #ef5350)
+- Differential shown as single green line (#66bb6a) when Δf(A−B) or Δm(A−B) selected
 - Legend in top-right corner
 - Crosshair cursor with coordinate readout at bottom
 - Mouse: scroll=zoom, drag=pan
@@ -300,7 +314,9 @@ Permanent widgets (left to right):
   separator, Recent Methods >,
   separator, Export CSV, Export XLSX, Export HDF5, separator, Exit
 - **Device**: Connect, Disconnect, separator, Simulator mode, separator, Send command...
-- **View**: Show/hide Connection panel, Show/hide Control panel, Reset layout
+- **View**: Show/hide Connection panel, Show/hide Control panel,
+  separator, Display: All channels, Display: Differential only,
+  separator, Reset layout
 - **Tools**: Sauerbrey settings, Temperature calibration, Statistics
 - **Help**: About
 

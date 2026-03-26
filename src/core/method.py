@@ -40,6 +40,7 @@ class Method:
     plot_y1: str = "delta_f"
     plot_y2: str = "none"
     plot_time_window: int = 600
+    display_mode: str = "all"         # "all" = A+B+Diff, "diff" = Diff only
 
 
 def save_method(method: Method, path: Path) -> None:
