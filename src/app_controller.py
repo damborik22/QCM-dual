@@ -179,24 +179,24 @@ class AppController:
             "temp": self._fmt_temp(point.temp_b),
         })
 
-        # Differential
-        if self._ref_channel != "None" and self._tared:
+        # Differential (computed whenever a reference channel is selected)
+        if self._ref_channel != "None":
             if self._ref_channel == "Ch A":
-                delta_f = point.delta_f_b - point.delta_f_a
+                diff_freq = freq_b_display - freq_a_display
             else:
-                delta_f = point.delta_f_a - point.delta_f_b
+                diff_freq = freq_a_display - freq_b_display
             delta_m = delta_f_to_delta_m(
-                delta_f,
+                diff_freq,
                 self.engine.sauerbrey_f0,
                 self.engine.sauerbrey_area,
                 self.engine.sauerbrey_harmonic,
-            )
+            ) if self._tared else 0.0
             self.window.display_panel.card_diff.update_values({
-                "delta_f": f"{delta_f:+.3f} Hz",
-                "delta_m": f"{delta_m:+.3f} ng/cm\u00b2",
+                "delta_f": f"{diff_freq:+.3f} Hz",
+                "delta_m": f"{delta_m:+.3f} ng/cm\u00b2" if self._tared else "---",
             })
         else:
-            delta_f = 0.0
+            diff_freq = 0.0
             delta_m = 0.0
 
         # Plot data
@@ -204,7 +204,7 @@ class AppController:
         self._plot_times.append(elapsed)
         self._plot_data["freq_a"].append(freq_a_display)
         self._plot_data["freq_b"].append(freq_b_display)
-        self._plot_data["delta_f_diff"].append(delta_f)
+        self._plot_data["delta_f_diff"].append(diff_freq)
         self._plot_data["delta_m_diff"].append(delta_m)
         self._plot_data["temp_a"].append(point.temp_a)
         self._plot_data["temp_b"].append(point.temp_b)
