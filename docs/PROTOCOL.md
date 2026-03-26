@@ -156,20 +156,20 @@ QCM09\t5d\t0\tC\t000394\t0.00020\t99.9\t09979727\t1.48871\t09979726.947\t1.48868
 ### Checksum Calculation
 
 Sum of all ASCII character values from the start of the line up to
-**and including** the last TAB character before the checksum field.
-CR and LF are excluded from the sum.
+**and including** the last TAB character before the checksum field,
+modulo 256 (single byte). CR and LF are excluded from the sum.
 
 ```python
 def calculate_checksum(line: str) -> int:
     """Calculate checksum for a QCM data line.
-    
+
     Sum all ASCII values from start up to and including
-    the last tab before the checksum field.
+    the last tab before the checksum field, modulo 256.
     """
     # Find the last tab (before checksum)
     last_tab_pos = line.rstrip('\r\n').rfind('\t')
     payload = line[:last_tab_pos + 1]  # include the last tab
-    return sum(ord(c) for c in payload)
+    return sum(ord(c) for c in payload) % 256
 ```
 
 ### Format Detection

@@ -158,8 +158,10 @@ Commit after each module is complete with tests passing.
 
 **Deliverables:**
 - `src/config.py` — QSettings wrapper with defaults
+- `src/core/method.py` — Method dataclass, load/save `.qcm` JSON files
 - `src/core/serial_manager.py` — QObject with signals, threaded reads
 - `src/core/acquisition.py` — ring buffer, tare, derived values
+- `tests/test_method.py`
 - `tests/test_serial_manager.py`
 - `tests/test_acquisition.py`
 
@@ -170,6 +172,8 @@ Commit after each module is complete with tests passing.
 - [ ] Tare correctly zeros Δf for both channels
 - [ ] Ring buffer stays bounded (no memory leak over 100k points)
 - [ ] Commands are sent and echoed in packet's last_command field
+- [ ] Method saves to / loads from `.qcm` JSON file correctly
+- [ ] Method with default values round-trips without data loss
 
 **Key design rule:** SerialManager owns ALL serial access. Nobody else
 imports pyserial. The simulator plugs in at this level — it implements
@@ -187,7 +191,7 @@ Easier to iterate on appearance when you can just restart the app.
 - `src/gui/styles.py` — complete dark QSS theme
 - `src/gui/main_window.py` — QMainWindow with all zones
 - `src/gui/connection_panel.py` — port dropdown, connect button, LED
-- `src/gui/control_panel.py` — all buttons and dropdowns
+- `src/gui/control_panel.py` — all buttons, dropdowns, temp calibration buttons
 - `src/gui/display_panel.py` — numeric readout cards
 - `src/gui/plot_widget.py` — pyqtgraph with empty axes, legend, crosshair
 - `src/main.py` — QApplication + theme + show window
@@ -215,10 +219,11 @@ This is the "magic moment" — simulated QCM data streaming in real-time.
 **Deliverables:**
 - Wire SerialManager → AcquisitionEngine → GUI signals
 - ConnectionPanel triggers connect/disconnect
-- ControlPanel triggers start/stop/single/mode/tare
+- ControlPanel triggers start/stop/single/mode/tare/temp calibration
 - DisplayPanel updates from MeasurementPoint
 - PlotWidget appends points, scrolls X axis
 - Status bar: elapsed time, point count, errors, mode
+- File menu: New/Open/Save Method (`.qcm` files)
 
 **Acceptance criteria:**
 - [ ] Select SIMULATOR → Connect → Start → see numbers updating at 1/sec
@@ -229,6 +234,8 @@ This is the "magic moment" — simulated QCM data streaming in real-time.
 - [ ] Status bar shows correct elapsed time and point count
 - [ ] NO GUI freezing or lag (serial runs in thread)
 - [ ] Disconnect → reconnect works cleanly
+- [ ] Temperature calibration buttons send D/E/U/V commands
+- [ ] Method Open loads `.qcm` and applies settings; Save persists them
 
 **Test early with PyInstaller here!** Do a quick `pyinstaller --onefile src/main.py`
 to catch import issues before spending more time on features.
@@ -241,7 +248,7 @@ to catch import issues before spending more time on features.
 **Subagent opportunity:** 3 parallel subagents:
 - Agent 1: `src/processing/sauerbrey.py` + `src/processing/filters.py` + tests
 - Agent 2: `src/export/csv_export.py` + `src/export/excel_export.py` + `src/export/hdf5_export.py`
-- Agent 3: `src/gui/settings_dialog.py` (Sauerbrey params, filter config)
+- Agent 3: `src/gui/settings_dialog.py` (Sauerbrey params, temp calibration, filter config)
 
 **Deliverables:**
 - Sauerbrey Δf → Δm conversion (configurable crystal params)
@@ -250,7 +257,7 @@ to catch import issues before spending more time on features.
 - CSV export with metadata header
 - XLSX export (openpyxl)
 - HDF5 export (h5py)
-- Settings dialog for crystal parameters
+- Settings dialog for crystal parameters and temperature calibration
 - File menu: Export CSV / XLSX / HDF5 with save dialog
 
 **Acceptance criteria:**

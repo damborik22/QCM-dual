@@ -10,7 +10,78 @@ Must work fully in **simulator mode** without hardware.
 
 ---
 
-## 2. Data Models (src/core/data_models.py)
+## 2. Method Files (src/core/method.py)
+
+A **Method** is a reusable experiment profile that stores all instrument and
+processing parameters. Saved as `.qcm` files (JSON). The method defines
+**how** to measure; data export (CSV/XLSX/HDF5) stores **what** was measured.
+
+```python
+@dataclass
+class Method:
+    """Experiment method / preset."""
+    # Metadata
+    name: str = "Untitled"
+    description: str = ""
+    author: str = ""
+
+    # Instrument setup (sent as commands on Start)
+    mode_fast: bool = False           # False=1×/s (F), True=5×/s (G)
+    auto_tune_a: bool = True          # True=H, False=I
+    auto_tune_b: bool = True          # True=S, False=T
+    io_mode_a: str = "NC"             # "NC"=K, "EXT"=J, "LEVER"=L, "10MHZ"=M
+    io_mode_b: str = "NC"             # "NC"=P, "EXT"=O, "LEVER"=Q, "10MHZ"=R
+
+    # Temperature calibration offsets (cumulative D/E/U/V presses)
+    temp_cal_offset_a: float = 0.0    # °C offset, applied via D/E commands
+    temp_cal_offset_b: float = 0.0    # °C offset, applied via U/V commands
+
+    # Sauerbrey / crystal parameters
+    sauerbrey_f0: float = 10_000_000.0   # Fundamental frequency (Hz)
+    sauerbrey_area: float = 0.2          # Electrode area (cm²)
+    sauerbrey_harmonic: int = 1          # Harmonic number (1, 3, 5...)
+
+    # Display preferences
+    plot_y1: str = "delta_f"
+    plot_y2: str = "none"
+    plot_time_window: int = 600       # seconds
+```
+
+**File format:** JSON with `.qcm` extension.
+
+```json
+{
+  "name": "Protein adsorption 10MHz",
+  "description": "Standard BSA adsorption protocol",
+  "author": "Lab 3",
+  "mode_fast": false,
+  "auto_tune_a": true,
+  "auto_tune_b": true,
+  "io_mode_a": "NC",
+  "io_mode_b": "NC",
+  "temp_cal_offset_a": 0.3,
+  "temp_cal_offset_b": 0.0,
+  "sauerbrey_f0": 10000000.0,
+  "sauerbrey_area": 0.2,
+  "sauerbrey_harmonic": 1,
+  "plot_y1": "delta_f",
+  "plot_y2": "delta_m",
+  "plot_time_window": 1800
+}
+```
+
+**File menu behavior:**
+- **New**: Reset to default method, clear data buffer
+- **Open...**: Load `.qcm` file, apply all settings (instrument + display + Sauerbrey)
+- **Save / Save As...**: Save current method as `.qcm`
+- **Recent Methods**: Last 5 opened methods for quick access
+
+When the user presses **Start**, the application sends the method's instrument
+commands to the device (mode, tune, I/O, temp calibration) before sending 'A'.
+
+---
+
+## 3. Data Models (src/core/data_models.py)
 
 ```python
 from dataclasses import dataclass, field
@@ -70,7 +141,7 @@ class MeasurementPoint:
 
 ---
 
-## 3. Core Interfaces
+## 4. Core Interfaces
 
 ### SerialManager (src/core/serial_manager.py)
 
@@ -158,7 +229,7 @@ class QCMSimulator:
 
 ---
 
-## 4. GUI Layout
+## 5. GUI Layout
 
 Window divided into 4 horizontal zones, top to bottom:
 
@@ -175,6 +246,8 @@ Right side: **Control Panel**
 - QCheckBox × 2: "Tune A", "Tune B" (auto-tuning)
 - QComboBox × 2: I/O mode for ch A and ch B
   Options: "NC (off)", "Ext. input", "Lever out", "10 MHz out"
+- QPushButtons × 4: "T+A", "T−A", "T+B", "T−B" (temperature calibration ±0.1°C)
+  Sends commands D/E (ch A) and U/V (ch B). Current offset shown in tooltip.
 
 ### Zone 2: Numeric displays (fixed height ~140px)
 
@@ -223,15 +296,17 @@ Permanent widgets (left to right):
 
 ### Menu bar
 
-- **File**: New, Open, Save, separator, Export CSV, Export XLSX, Export HDF5, separator, Exit
+- **File**: New Method, Open Method..., Save Method, Save Method As...,
+  separator, Recent Methods >,
+  separator, Export CSV, Export XLSX, Export HDF5, separator, Exit
 - **Device**: Connect, Disconnect, separator, Simulator mode, separator, Send command...
 - **View**: Show/hide Connection panel, Show/hide Control panel, Reset layout
-- **Tools**: Sauerbrey settings, Statistics
+- **Tools**: Sauerbrey settings, Temperature calibration, Statistics
 - **Help**: About
 
 ---
 
-## 5. Theme / Styling (src/gui/styles.py)
+## 6. Theme / Styling (src/gui/styles.py)
 
 Single QSS string applied via `app.setStyleSheet(DARK_THEME)`.
 
@@ -262,7 +337,7 @@ Font strategy:
 
 ---
 
-## 6. Processing
+## 7. Processing
 
 ### Sauerbrey (src/processing/sauerbrey.py)
 
@@ -309,7 +384,7 @@ def delta_f_to_delta_m(
 
 ---
 
-## 7. Export Formats
+## 8. Export Formats
 
 ### CSV (src/export/csv_export.py)
 
@@ -339,7 +414,7 @@ Tab-separated, decimal point (not comma). One row per MeasurementPoint.
 
 ---
 
-## 8. Configuration (src/config.py)
+## 9. Configuration (src/config.py)
 
 Use QSettings("KEVA", "QCM-Dual"):
 
@@ -360,6 +435,10 @@ DEFAULTS = {
     "plot/time_window": 600,
     "export/delimiter": "tab",
     "export/last_directory": "",
+    "method/last_file": "",
+    "method/recent_files": [],
+    "temp_cal/offset_a": 0.0,
+    "temp_cal/offset_b": 0.0,
     "window/geometry": None,
     "window/state": None,
 }
