@@ -55,10 +55,12 @@ def export_csv(
     header_lines.append("#")
 
     columns = [
-        "timestamp", "device_time", "freq_a", "freq_b",
+        "elapsed_s", "datetime", "device_time", "freq_a", "freq_b",
         "delta_f_a", "delta_f_b", "delta_m_a", "delta_m_b",
         "acg_a", "acg_b", "temp_a", "temp_b", "ux",
     ]
+
+    t0 = points[0].timestamp if points else 0.0
 
     with path.open("w", encoding="utf-8") as f:
         for line in header_lines:
@@ -66,8 +68,13 @@ def export_csv(
         f.write("\t".join(columns) + "\n")
 
         for pt in points:
+            elapsed = pt.timestamp - t0
+            dt = datetime.datetime.fromtimestamp(pt.timestamp).strftime(
+                "%Y-%m-%d %H:%M:%S.%f"
+            )[:-3]  # trim to milliseconds
             row = [
-                f"{pt.timestamp:.6f}",
+                f"{elapsed:.3f}",
+                dt,
                 str(pt.device_time),
                 f"{pt.freq_a:.3f}",
                 f"{pt.freq_b:.3f}",

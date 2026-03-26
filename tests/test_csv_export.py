@@ -58,7 +58,8 @@ class TestCSVExport:
         export_csv(sample_points, path)
         lines = path.read_text().splitlines()
         data_lines = [l for l in lines if not l.startswith("#")]
-        assert data_lines[0].startswith("timestamp\t")
+        assert data_lines[0].startswith("elapsed_s\t")
+        assert "datetime" in data_lines[0]
         assert "freq_a" in data_lines[0]
 
     def test_data_rows(self, tmp_path: Path, sample_points: list) -> None:
@@ -75,7 +76,7 @@ class TestCSVExport:
         lines = path.read_text().splitlines()
         data_lines = [l for l in lines if not l.startswith("#")]
         fields = data_lines[1].split("\t")
-        assert len(fields) == 13
+        assert len(fields) == 14
 
     def test_decimal_point(self, tmp_path: Path, sample_points: list) -> None:
         """Values should use decimal point, not comma."""
