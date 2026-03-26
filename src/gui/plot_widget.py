@@ -231,23 +231,27 @@ class PlotPanel(QFrame):
         self._update_axis_label()
 
     def _update_axis_label(self) -> None:
-        """Set Y-axis label with units colored to match their traces."""
-        # Collect (unit, color) pairs for visible traces, dedup by unit
-        unit_colors: dict[str, str] = {}
-        for key, _label, _ch, color, unit, _default in TRACE_DEFS:
-            if key in self.toggle_buttons and self.toggle_buttons[key].isChecked():
-                if unit not in unit_colors:
-                    unit_colors[unit] = color
+        """Set Y-axis label with units colored to match their traces.
 
-        if not unit_colors:
+        Each visible trace contributes its own colored unit label,
+        so the same unit (e.g. Hz) can appear multiple times in
+        different colors when multiple channels are shown.
+        """
+        parts: list[str] = []
+        seen: set[tuple[str, str]] = set()  # (unit, color) dedup
+        for key, label, _ch, color, unit, _default in TRACE_DEFS:
+            if key in self.toggle_buttons and self.toggle_buttons[key].isChecked():
+                pair = (unit, color)
+                if pair not in seen:
+                    seen.add(pair)
+                    parts.append(
+                        f'<span style="color:{color}">{unit}</span>'
+                    )
+
+        if not parts:
             self.plot_widget.setLabel("left", "", color="#8888aa")
         else:
-            parts = [
-                f'<span style="color:{color}">{unit}</span>'
-                for unit, color in unit_colors.items()
-            ]
-            html = " &nbsp; ".join(parts)
-            self.plot_widget.getAxis("left").setLabel(html)
+            self.plot_widget.getAxis("left").setLabel(" &nbsp; ".join(parts))
 
     def switch_to_diff(self) -> None:
         """Auto-switch plot view from raw frequencies to differential.
