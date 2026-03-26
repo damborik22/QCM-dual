@@ -15,6 +15,7 @@ from PySide6.QtWidgets import QFileDialog, QMessageBox
 
 from src.core.acquisition import AcquisitionEngine
 from src.export.csv_export import export_csv
+from src.processing.sauerbrey import delta_f_to_delta_m
 from src.core.data_models import MeasurementPoint
 from src.core.method import Method, load_method, save_method
 from src.core.serial_manager import SerialManager
@@ -184,7 +185,12 @@ class AppController:
                 delta_f = point.delta_f_b - point.delta_f_a
             else:
                 delta_f = point.delta_f_a - point.delta_f_b
-            delta_m = 0.0  # Sauerbrey in Phase 5
+            delta_m = delta_f_to_delta_m(
+                delta_f,
+                self.engine.sauerbrey_f0,
+                self.engine.sauerbrey_area,
+                self.engine.sauerbrey_harmonic,
+            )
             self.window.display_panel.card_diff.update_values({
                 "delta_f": f"{delta_f:+.3f} Hz",
                 "delta_m": f"{delta_m:+.3f} ng/cm\u00b2",
@@ -238,6 +244,15 @@ class AppController:
         """Tare both channels and switch plot to diff view."""
         self.engine.tare("both")
         self._tared = True
+
+        # Reset plot data so traces start fresh from tare point
+        self._plot_times.clear()
+        for buf in self._plot_data.values():
+            buf.clear()
+        for trace in self.window.plot_panel.traces.values():
+            trace.setData([], [])
+        self._start_time = time.time()
+
         # Auto-switch plot to differential if reference is set
         if self._ref_channel != "None":
             self.window.plot_panel.switch_to_diff()
