@@ -79,6 +79,11 @@ class MainWindow(QMainWindow):
         # Menu bar
         self._create_menu_bar()
 
+        # Wire reference channel selector
+        self.control_panel.ref_combo.currentTextChanged.connect(
+            self._on_reference_changed
+        )
+
         logger.info("MainWindow initialized")
 
     # ------------------------------------------------------------------
@@ -263,3 +268,28 @@ class MainWindow(QMainWindow):
         help_menu.addAction(self.action_about)
 
         logger.debug("Menu bar created")
+
+    # ------------------------------------------------------------------
+    # Reference channel handling
+    # ------------------------------------------------------------------
+
+    def _on_reference_changed(self, ref: str) -> None:
+        """Handle reference channel combo change.
+
+        Updates the display panel (show/hide diff card) and enables/disables
+        the diff trace toggle buttons in the plot panel.
+
+        Args:
+            ref: "None", "Ch A", or "Ch B".
+        """
+        self.display_panel.set_reference_channel(ref)
+
+        has_ref = ref != "None"
+        for key in ("delta_f_diff", "delta_m_diff"):
+            btn = self.plot_panel.toggle_buttons.get(key)
+            if btn is not None:
+                btn.setEnabled(has_ref)
+                if not has_ref:
+                    btn.setChecked(False)
+
+        logger.info("Reference channel changed to: %s", ref)

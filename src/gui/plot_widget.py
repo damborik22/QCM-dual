@@ -29,12 +29,12 @@ PLOT_BG = "#1a1a2e"
 # Trace definitions: (key, label, channel, color, unit, default_on)
 # Diff direction is determined by the Reference channel selector in ControlPanel.
 TRACE_DEFS: list[tuple[str, str, str, str, str, bool]] = [
-    ("freq_a",       "Freq A",       "A",    COLOR_A,    "Hz",           True),
-    ("freq_b",       "Freq B",       "B",    COLOR_B,    "Hz",           True),
-    ("delta_f_diff", "\u0394f Diff", "Diff", COLOR_DIFF, "Hz",           False),
-    ("delta_m_diff", "\u0394m Diff", "Diff", COLOR_DIFF, "ng/cm\u00b2",  False),
-    ("temp_a",       "Temp A",       "A",    COLOR_A,    "\u00b0C",      False),
-    ("temp_b",       "Temp B",       "B",    COLOR_B,    "\u00b0C",      False),
+    ("freq_a",       "Freq A",  "A",    COLOR_A,    "Hz",           True),
+    ("freq_b",       "Freq B",  "B",    COLOR_B,    "Hz",           True),
+    ("delta_f_diff", "\u0394f", "Diff", COLOR_DIFF, "Hz",           False),
+    ("delta_m_diff", "\u0394m", "Diff", COLOR_DIFF, "ng/cm\u00b2",  False),
+    ("temp_a",       "Temp A",  "A",    COLOR_A,    "\u00b0C",      False),
+    ("temp_b",       "Temp B",  "B",    COLOR_B,    "\u00b0C",      False),
 ]
 
 # Separators between groups (insert after these indices in TRACE_DEFS)
@@ -118,6 +118,11 @@ class PlotPanel(QFrame):
 
         # Create data lines for each trace
         self._create_traces()
+
+        # Diff toggles disabled until a reference channel is selected
+        for key in ("delta_f_diff", "delta_m_diff"):
+            if key in self.toggle_buttons:
+                self.toggle_buttons[key].setEnabled(False)
 
         # Crosshair
         self._crosshair_v = pg.InfiniteLine(

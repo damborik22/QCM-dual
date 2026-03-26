@@ -59,6 +59,8 @@ class ChannelCard(QFrame):
         self.channel = channel
         self._accent_color = accent_color
         self._value_labels: dict[str, QLabel] = {}
+        self._row_labels: dict[str, QLabel] = {}
+        self._title_label: QLabel | None = None
         self.setObjectName("ChannelCard")
         self._build_ui()
         logger.debug("ChannelCard '%s' initialized", channel)
@@ -86,12 +88,12 @@ class ChannelCard(QFrame):
         outer.setSpacing(2)
 
         # Channel title
-        title = QLabel(self._title_text())
-        title.setStyleSheet(
+        self._title_label = QLabel(self._title_text())
+        self._title_label.setStyleSheet(
             f"color: {self._accent_color}; font-weight: bold; font-size: 12pt;"
             "background: transparent; border: none;"
         )
-        outer.addWidget(title)
+        outer.addWidget(self._title_label)
 
         # Value grid
         grid = QGridLayout()
@@ -125,6 +127,7 @@ class ChannelCard(QFrame):
             grid.addWidget(lbl, row_idx, 0)
             grid.addWidget(val, row_idx, 1)
             self._value_labels[key] = val
+            self._row_labels[key] = lbl
 
         outer.addLayout(grid)
         outer.addStretch()
@@ -132,8 +135,27 @@ class ChannelCard(QFrame):
     def _title_text(self) -> str:
         """Return the card title string."""
         if self.channel == "Diff":
-            return "Diff (A\u2212B)"
+            return "Differential"
         return f"Channel {self.channel}"
+
+    def set_diff_direction(self, ref_channel: str) -> None:
+        """Update differential card labels to show the correct direction.
+
+        Args:
+            ref_channel: "A" (diff = B−A) or "B" (diff = A−B).
+        """
+        if self.channel != "Diff":
+            return
+        if ref_channel == "A":
+            direction = "B\u2212A"
+        else:
+            direction = "A\u2212B"
+        if "delta_f" in self._row_labels:
+            self._row_labels["delta_f"].setText(f"\u0394f ({direction})")
+        if "delta_m" in self._row_labels:
+            self._row_labels["delta_m"].setText(f"\u0394m ({direction})")
+        if self._title_label is not None:
+            self._title_label.setText(f"Diff ({direction})")
 
     @staticmethod
     def _ab_rows() -> list[tuple[str, str, int]]:
@@ -224,6 +246,9 @@ class DisplayPanel(QFrame):
         layout.addWidget(self.card_b, stretch=1)
         layout.addWidget(self.card_diff, stretch=1)
 
+        # Diff card hidden until a reference channel is selected
+        self.card_diff.setVisible(False)
+
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
@@ -243,5 +268,21 @@ class DisplayPanel(QFrame):
             # Default: "all"
             self.card_a.setVisible(True)
             self.card_b.setVisible(True)
-            self.card_diff.setVisible(True)
+            # card_diff visibility depends on reference selection
         logger.debug("Display mode set to '%s'", mode)
+
+    def set_reference_channel(self, ref: str) -> None:
+        """Update display based on reference channel selection.
+
+        Args:
+            ref: "None", "Ch A", or "Ch B".
+        """
+        if ref == "None":
+            self.card_diff.setVisible(False)
+        elif ref == "Ch A":
+            self.card_diff.set_diff_direction("A")
+            self.card_diff.setVisible(True)
+        elif ref == "Ch B":
+            self.card_diff.set_diff_direction("B")
+            self.card_diff.setVisible(True)
+        logger.debug("Reference channel set to '%s'", ref)
