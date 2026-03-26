@@ -4,6 +4,7 @@ import sys
 
 from PySide6.QtWidgets import QApplication
 
+from src.app_controller import AppController
 from src.gui.main_window import MainWindow
 from src.gui.styles import DARK_THEME
 
@@ -22,6 +23,7 @@ def main() -> None:
     app.setStyleSheet(DARK_THEME)
 
     window = MainWindow()
+    controller = AppController(window)  # noqa: F841 — prevent GC
     window.show()
 
     sys.exit(app.exec())

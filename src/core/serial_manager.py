@@ -71,6 +71,10 @@ class SimulatorPort:
                     self._single_pending = False
 
             if should_send:
+                # Simulate real device timing
+                if self._continuous:
+                    interval = 0.2 if self._simulator._fast_mode else 1.0
+                    time.sleep(interval)
                 if self._simulator._fast_mode:
                     line = self._simulator.generate_long_packet()
                 else:
