@@ -244,8 +244,8 @@ Left side: **Connection Panel**
 Right side: **Control Panel**
 - QPushButtons: Start (▶), Stop (⏹)
 - QButtonGroup with QRadioButtons: "1×/s" and "5×/s"
-- QCheckBox × 2: "Tune A", "Tune B" (auto-tuning)
-- I/O mode and temperature calibration are in **Device > Device settings...** dialog
+- QComboBox "Reference": None, Ch A, Ch B (selects reference channel for differential)
+- DDS auto-tuning, I/O mode, and temperature calibration are in **Device > Device settings...** dialog
 
 ### Zone 2: Numeric displays (fixed height ~140px)
 
@@ -279,10 +279,12 @@ Three side-by-side **DisplayPanel** cards (QFrame with styled border):
 ### Zone 3: Plot (stretches to fill, minimum 300px)
 
 **PlotWidget** toolbar (above plot) — trace toggle buttons:
-- Clickable toggle buttons, color-coded by channel (blue A, red B, green Diff):
-  `[Freq A] [Freq B] | [Δf A] [Δf B] [Δf(A−B)] | [Δm A] [Δm B] [Δm(A−B)] | [ACG A] [ACG B] | [Temp A] [Temp B]`
+- Clickable toggle buttons, color-coded (blue=A, red=B, green=Diff):
+  `[Freq A] [Freq B] | [Δf Diff] [Δm Diff] | [Temp A] [Temp B]  ||  [Tare] [Autoscale] [Clear]`
 - Active buttons: filled with channel color. Inactive: outlined.
-- Default: Δf A and Δf B toggled on
+- Default: Freq A + Freq B on (monitoring baseline stability)
+- **On Tare**: auto-switches to Δf Diff view (user can toggle back manually)
+- Diff direction determined by Reference selector: Ch A ref → B−A, Ch B ref → A−B
 - QPushButtons: Tare, Autoscale, Clear (right side)
 
 Plot features:

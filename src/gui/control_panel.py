@@ -8,7 +8,6 @@ import logging
 
 from PySide6.QtWidgets import (
     QButtonGroup,
-    QCheckBox,
     QComboBox,
     QFrame,
     QHBoxLayout,
@@ -39,8 +38,6 @@ class ControlPanel(QFrame):
         mode_1x: QRadioButton for 1x/s rate.
         mode_5x: QRadioButton for 5x/s rate.
         rate_group: QButtonGroup containing the two rate radios.
-        tune_a_cb: QCheckBox for auto-tune channel A.
-        tune_b_cb: QCheckBox for auto-tune channel B.
         ref_combo: QComboBox for reference channel selection.
     """
 
@@ -82,19 +79,6 @@ class ControlPanel(QFrame):
         layout.addWidget(rate_label)
         layout.addWidget(self.mode_1x)
         layout.addWidget(self.mode_5x)
-
-        layout.addWidget(_make_vsep())
-
-        # --- Auto-tune check boxes --------------------------------------
-        self.tune_a_cb = QCheckBox("Tune A")
-        self.tune_a_cb.setChecked(True)
-        self.tune_a_cb.setToolTip("Enable DDS auto-tuning for channel A")
-        self.tune_b_cb = QCheckBox("Tune B")
-        self.tune_b_cb.setChecked(True)
-        self.tune_b_cb.setToolTip("Enable DDS auto-tuning for channel B")
-
-        layout.addWidget(self.tune_a_cb)
-        layout.addWidget(self.tune_b_cb)
 
         layout.addWidget(_make_vsep())
 

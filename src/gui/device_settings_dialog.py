@@ -1,12 +1,13 @@
 """Device settings dialog for QCM-Dual.
 
-Contains I/O connector configuration and temperature calibration —
-settings that are rarely changed during normal operation.
+Contains DDS auto-tuning, I/O connector configuration, and temperature
+calibration — settings that are rarely changed during normal operation.
 """
 import logging
 
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QDialog,
     QFormLayout,
@@ -40,10 +41,13 @@ class DeviceSettingsDialog(QDialog):
         temp_dec_b_btn: QPushButton -0.1°C channel B.
         temp_offset_a_label: QLabel showing current offset A.
         temp_offset_b_label: QLabel showing current offset B.
+        tune_a_cb: QCheckBox for DDS auto-tuning channel A.
+        tune_b_cb: QCheckBox for DDS auto-tuning channel B.
     """
 
     temp_cal_changed = Signal(str, float)  # (channel "A"/"B", new_offset)
     io_mode_changed = Signal(str, str)     # (channel "A"/"B", mode key)
+    tune_changed = Signal(str, bool)       # (channel "A"/"B", enabled)
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -57,6 +61,30 @@ class DeviceSettingsDialog(QDialog):
     def _build_ui(self) -> None:
         """Build the dialog layout."""
         layout = QVBoxLayout(self)
+
+        # --- DDS Auto-Tuning ---
+        tune_group = QGroupBox("DDS Auto-Tuning")
+        tune_layout = QVBoxLayout(tune_group)
+
+        self.tune_a_cb = QCheckBox("Channel A — auto-tune enabled (recommended)")
+        self.tune_a_cb.setChecked(True)
+        self.tune_a_cb.setToolTip(
+            "DDS oscillator tracks the QCM sensor frequency every second.\n"
+            "Recommended to keep enabled at all times."
+        )
+        self.tune_a_cb.toggled.connect(lambda on: self.tune_changed.emit("A", on))
+        tune_layout.addWidget(self.tune_a_cb)
+
+        self.tune_b_cb = QCheckBox("Channel B — auto-tune enabled (recommended)")
+        self.tune_b_cb.setChecked(True)
+        self.tune_b_cb.setToolTip(
+            "DDS oscillator tracks the QCM sensor frequency every second.\n"
+            "Recommended to keep enabled at all times."
+        )
+        self.tune_b_cb.toggled.connect(lambda on: self.tune_changed.emit("B", on))
+        tune_layout.addWidget(self.tune_b_cb)
+
+        layout.addWidget(tune_group)
 
         # --- I/O Connector Configuration ---
         io_group = QGroupBox("I/O Connector Configuration")

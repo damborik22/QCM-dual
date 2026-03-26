@@ -29,22 +29,16 @@ PLOT_BG = "#1a1a2e"
 # Trace definitions: (key, label, channel, color, unit, default_on)
 # Diff direction is determined by the Reference channel selector in ControlPanel.
 TRACE_DEFS: list[tuple[str, str, str, str, str, bool]] = [
-    ("freq_a",       "Freq A",       "A",    COLOR_A,    "Hz",           False),
-    ("freq_b",       "Freq B",       "B",    COLOR_B,    "Hz",           False),
-    ("delta_f_a",    "\u0394f A",    "A",    COLOR_A,    "Hz",           True),
-    ("delta_f_b",    "\u0394f B",    "B",    COLOR_B,    "Hz",           True),
-    ("delta_m_a",    "\u0394m A",    "A",    COLOR_A,    "ng/cm\u00b2",  False),
-    ("delta_m_b",    "\u0394m B",    "B",    COLOR_B,    "ng/cm\u00b2",  False),
-    ("acg_a",        "ACG A",        "A",    COLOR_A,    "V",            False),
-    ("acg_b",        "ACG B",        "B",    COLOR_B,    "V",            False),
-    ("temp_a",       "Temp A",       "A",    COLOR_A,    "\u00b0C",      False),
-    ("temp_b",       "Temp B",       "B",    COLOR_B,    "\u00b0C",      False),
+    ("freq_a",       "Freq A",       "A",    COLOR_A,    "Hz",           True),
+    ("freq_b",       "Freq B",       "B",    COLOR_B,    "Hz",           True),
     ("delta_f_diff", "\u0394f Diff", "Diff", COLOR_DIFF, "Hz",           False),
     ("delta_m_diff", "\u0394m Diff", "Diff", COLOR_DIFF, "ng/cm\u00b2",  False),
+    ("temp_a",       "Temp A",       "A",    COLOR_A,    "\u00b0C",      False),
+    ("temp_b",       "Temp B",       "B",    COLOR_B,    "\u00b0C",      False),
 ]
 
 # Separators between groups (insert after these indices in TRACE_DEFS)
-_GROUP_BREAKS = {1, 5, 7, 9}  # after Freq B, Δm B, ACG B, Temp B
+_GROUP_BREAKS = {1, 3}  # after Freq B, Δm Diff
 
 
 class _TraceToggle(QPushButton):
@@ -243,6 +237,31 @@ class PlotPanel(QFrame):
             self.plot_widget.setLabel("left", ", ".join(sorted(visible_units)), color="#8888aa")
         else:
             self.plot_widget.setLabel("left", "", color="#8888aa")
+
+    def switch_to_diff(self) -> None:
+        """Auto-switch plot view from raw frequencies to differential.
+
+        Called when Tare is pressed. Turns off Freq A/B, turns on Δf Diff.
+        """
+        for key in ("freq_a", "freq_b"):
+            if key in self.toggle_buttons:
+                self.toggle_buttons[key].setChecked(False)
+        if "delta_f_diff" in self.toggle_buttons:
+            self.toggle_buttons["delta_f_diff"].setChecked(True)
+        logger.info("Plot switched to differential view")
+
+    def switch_to_freq(self) -> None:
+        """Switch plot view back to raw frequencies.
+
+        Turns off diff traces, turns on Freq A/B.
+        """
+        for key in ("delta_f_diff", "delta_m_diff"):
+            if key in self.toggle_buttons:
+                self.toggle_buttons[key].setChecked(False)
+        for key in ("freq_a", "freq_b"):
+            if key in self.toggle_buttons:
+                self.toggle_buttons[key].setChecked(True)
+        logger.info("Plot switched to frequency view")
 
     def get_visible_trace_keys(self) -> list[str]:
         """Return list of currently visible trace keys.
