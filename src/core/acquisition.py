@@ -11,6 +11,7 @@ from PySide6.QtCore import QObject, Signal
 from src.core.data_models import MeasurementPoint, ShortPacket, LongPacket
 from src.core.protocol import parse_line
 from src.core.serial_manager import SerialManager
+from src.processing.sauerbrey import delta_f_to_delta_m
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,11 @@ class AcquisitionEngine(QObject):
         self._tare_a: float | None = None
         self._tare_b: float | None = None
         self._running = False
+
+        # Sauerbrey parameters (can be updated from Method)
+        self.sauerbrey_f0: float = 10e6
+        self.sauerbrey_area: float = 0.2
+        self.sauerbrey_harmonic: int = 1
 
     def start(self) -> None:
         """Start continuous acquisition (sends 'A' command)."""
@@ -140,6 +146,13 @@ class AcquisitionEngine(QObject):
         delta_f_a = (freq_a - self._tare_a) if self._tare_a is not None else 0.0
         delta_f_b = (freq_b - self._tare_b) if self._tare_b is not None else 0.0
 
+        delta_m_a = delta_f_to_delta_m(
+            delta_f_a, self.sauerbrey_f0, self.sauerbrey_area, self.sauerbrey_harmonic
+        ) if self._tare_a is not None else 0.0
+        delta_m_b = delta_f_to_delta_m(
+            delta_f_b, self.sauerbrey_f0, self.sauerbrey_area, self.sauerbrey_harmonic
+        ) if self._tare_b is not None else 0.0
+
         return MeasurementPoint(
             timestamp=packet.pc_timestamp,
             device_time=packet.device_time,
@@ -147,8 +160,8 @@ class AcquisitionEngine(QObject):
             freq_b=freq_b,
             delta_f_a=delta_f_a,
             delta_f_b=delta_f_b,
-            delta_m_a=0.0,  # Sauerbrey not yet implemented (Phase 5)
-            delta_m_b=0.0,
+            delta_m_a=delta_m_a,
+            delta_m_b=delta_m_b,
             acg_a=acg_a,
             acg_b=acg_b,
             temp_a=temp_a,

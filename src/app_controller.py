@@ -3,6 +3,7 @@
 Connects SerialManager, AcquisitionEngine, and GUI panels via
 Qt Signals/Slots. Owns the core objects and manages application state.
 """
+import datetime
 import logging
 import time
 from collections import deque
@@ -10,9 +11,10 @@ from pathlib import Path
 
 import numpy as np
 from PySide6.QtCore import QTimer
-from PySide6.QtWidgets import QFileDialog
+from PySide6.QtWidgets import QFileDialog, QMessageBox
 
 from src.core.acquisition import AcquisitionEngine
+from src.export.csv_export import export_csv
 from src.core.data_models import MeasurementPoint
 from src.core.method import Method, load_method, save_method
 from src.core.serial_manager import SerialManager
@@ -96,6 +98,7 @@ class AppController:
         w.action_open_method.triggered.connect(self._on_open_method)
         w.action_save_method.triggered.connect(self._on_save_method)
         w.action_save_method_as.triggered.connect(self._on_save_method_as)
+        w.action_export_csv.triggered.connect(self._on_export_csv)
         w.action_device_settings.triggered.connect(self._on_device_settings)
 
     def _update_port_list(self) -> None:
@@ -241,8 +244,35 @@ class AppController:
         logger.info("Tare applied")
 
     def _on_clear(self) -> None:
-        """Clear all data buffers and reset display."""
-        # TODO Phase 5: auto-save + confirmation dialog
+        """Clear data with auto-save safety net and confirmation dialog."""
+        points = self.engine.get_buffer()
+        if not points:
+            self._do_clear()
+            return
+
+        # Auto-save to temp file
+        self._autosave(points)
+
+        # Confirmation dialog
+        reply = QMessageBox.question(
+            self.window,
+            "Clear Data",
+            f"Save {len(points)} data points before clearing?",
+            QMessageBox.StandardButton.Save
+            | QMessageBox.StandardButton.Discard
+            | QMessageBox.StandardButton.Cancel,
+            QMessageBox.StandardButton.Save,
+        )
+
+        if reply == QMessageBox.StandardButton.Cancel:
+            return
+        if reply == QMessageBox.StandardButton.Save:
+            self._on_export_csv()
+
+        self._do_clear()
+
+    def _do_clear(self) -> None:
+        """Actually clear all data buffers and reset display."""
         self.engine.clear_buffer()
         self._plot_times.clear()
         for buf in self._plot_data.values():
@@ -251,16 +281,13 @@ class AppController:
         self._tared = False
         self._start_time = None
 
-        # Reset plot traces
         for trace in self.window.plot_panel.traces.values():
             trace.setData([], [])
 
-        # Reset display cards
         self.window.display_panel.card_a.reset()
         self.window.display_panel.card_b.reset()
         self.window.display_panel.card_diff.reset()
 
-        # Reset status bar
         self.window.elapsed_label.setText("\u23f1 00:00:00")
         self.window.points_label.setText("Points: 0")
         self.window.voltage_label.setText("Ux: 0.00000 V")
@@ -268,6 +295,50 @@ class AppController:
         # Switch plot back to frequency view
         self.window.plot_panel.switch_to_freq()
         logger.info("Data cleared")
+
+    def _autosave(self, points: list[MeasurementPoint]) -> None:
+        """Auto-save data to temp directory as safety net."""
+        autosave_dir = Path.home() / ".qcm-dual" / "autosave"
+        autosave_dir.mkdir(parents=True, exist_ok=True)
+        stamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        path = autosave_dir / f"{stamp}.csv"
+        try:
+            export_csv(
+                points, path,
+                tare_a=self.engine._tare_a,
+                tare_b=self.engine._tare_b,
+                f0=self.engine.sauerbrey_f0,
+                area=self.engine.sauerbrey_area,
+                harmonic=self.engine.sauerbrey_harmonic,
+            )
+            logger.info("Auto-saved %d points to %s", len(points), path)
+        except Exception as exc:
+            logger.error("Auto-save failed: %s", exc)
+
+    # ------------------------------------------------------------------
+    # Export
+    # ------------------------------------------------------------------
+
+    def _on_export_csv(self) -> None:
+        """Export measurement data to CSV file."""
+        points = self.engine.get_buffer()
+        if not points:
+            logger.warning("No data to export")
+            return
+        path, _ = QFileDialog.getSaveFileName(
+            self.window, "Export CSV", "qcm_data.csv",
+            "CSV Files (*.csv);;All Files (*)"
+        )
+        if not path:
+            return
+        export_csv(
+            points, Path(path),
+            tare_a=self.engine._tare_a,
+            tare_b=self.engine._tare_b,
+            f0=self.engine.sauerbrey_f0,
+            area=self.engine.sauerbrey_area,
+            harmonic=self.engine.sauerbrey_harmonic,
+        )
 
     # ------------------------------------------------------------------
     # Reference channel
