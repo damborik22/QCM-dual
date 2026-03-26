@@ -278,10 +278,12 @@ Three side-by-side **DisplayPanel** cards (QFrame with styled border):
 
 ### Zone 3: Plot (stretches to fill, minimum 300px)
 
-**PlotWidget** toolbar (above plot):
-- QComboBox "Y1": Δf, Frequency, Δm, ACG, Temperature, Δf (A−B), Δm (A−B)
-- QComboBox "Y2": None, Δf, Frequency, Δm, ACG, Temperature, Δf (A−B), Δm (A−B)
-- QPushButtons: Tare, Autoscale, Clear
+**PlotWidget** toolbar (above plot) — trace toggle buttons:
+- Clickable toggle buttons, color-coded by channel (blue A, red B, green Diff):
+  `[Freq A] [Freq B] | [Δf A] [Δf B] [Δf(A−B)] | [Δm A] [Δm B] [Δm(A−B)] | [ACG A] [ACG B] | [Temp A] [Temp B]`
+- Active buttons: filled with channel color. Inactive: outlined.
+- Default: Δf A and Δf B toggled on
+- QPushButtons: Tare, Autoscale, Clear (right side)
 
 Plot features:
 - pyqtgraph PlotWidget
