@@ -15,6 +15,7 @@ from PySide6.QtWidgets import QFileDialog, QMessageBox
 
 from src.core.acquisition import AcquisitionEngine
 from src.export.csv_export import export_csv
+from src.gui.export_dialog import ExportDialog
 from src.processing.sauerbrey import delta_f_to_delta_m
 from src.core.data_models import MeasurementPoint
 from src.core.method import Method, load_method, save_method
@@ -384,30 +385,61 @@ class AppController:
     # ------------------------------------------------------------------
 
     def _on_export_csv(self) -> None:
-        """Export measurement data to CSV file.
+        """Export measurement data to CSV via export dialog.
 
-        If a recording was made, exports only recorded points.
-        Otherwise exports the entire buffer.
+        Shows dialog for experiment name, output folder, and recording
+        selection. Exports each selected recording as a separate file:
+        <name>_001.csv, <name>_002.csv, etc.
+        If no recordings, exports the entire buffer as <name>.csv.
         """
-        recorded = self.get_recorded_points()
-        points = recorded if recorded else self.engine.get_buffer()
-        if not points:
+        buf = self.engine.get_buffer()
+        if not buf:
             logger.warning("No data to export")
             return
-        path, _ = QFileDialog.getSaveFileName(
-            self.window, "Export CSV", "qcm_data.csv",
-            "CSV Files (*.csv);;All Files (*)"
+
+        dialog = ExportDialog(
+            recording_count=len(self._recordings),
+            parent=self.window,
         )
-        if not path:
+        if dialog.exec() != ExportDialog.DialogCode.Accepted:
             return
-        export_csv(
-            points, Path(path),
-            tare_a=self.engine._tare_a,
-            tare_b=self.engine._tare_b,
-            f0=self.engine.sauerbrey_f0,
-            area=self.engine.sauerbrey_area,
-            harmonic=self.engine.sauerbrey_harmonic,
-        )
+
+        name = dialog.experiment_name
+        folder = Path(dialog.output_folder)
+        folder.mkdir(parents=True, exist_ok=True)
+
+        export_kwargs = {
+            "tare_a": self.engine._tare_a,
+            "tare_b": self.engine._tare_b,
+            "f0": self.engine.sauerbrey_f0,
+            "area": self.engine.sauerbrey_area,
+            "harmonic": self.engine.sauerbrey_harmonic,
+        }
+
+        if self._recordings and dialog.selected_recordings:
+            # Export each selected recording as a separate file
+            for rec_idx in dialog.selected_recordings:
+                start, end = self._recordings[rec_idx]
+                points = buf[start:end]
+                if not points:
+                    continue
+                file_num = rec_idx + 1
+                path = folder / f"{name}_{file_num:03d}.csv"
+                export_csv(
+                    points, path,
+                    experiment_name=name,
+                    recording_index=file_num,
+                    **export_kwargs,
+                )
+            logger.info(
+                "Exported %d recordings to %s",
+                len(dialog.selected_recordings), folder,
+            )
+        else:
+            # No recordings — export entire buffer
+            path = folder / f"{name}.csv"
+            export_csv(buf, path, experiment_name=name, **export_kwargs)
+            logger.info("Exported full buffer to %s", path)
 
     # ------------------------------------------------------------------
     # Reference channel

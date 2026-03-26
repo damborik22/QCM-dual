@@ -14,6 +14,8 @@ logger = logging.getLogger(__name__)
 def export_csv(
     points: list[MeasurementPoint],
     path: Path,
+    experiment_name: str = "",
+    recording_index: int | None = None,
     tare_a: float | None = None,
     tare_b: float | None = None,
     f0: float = 10e6,
@@ -25,6 +27,8 @@ def export_csv(
     Args:
         points: List of MeasurementPoint objects.
         path: Destination file path.
+        experiment_name: Name of the experiment.
+        recording_index: Which recording this is (1-based), or None.
         tare_a: Tare reference frequency for channel A (Hz).
         tare_b: Tare reference frequency for channel B (Hz).
         f0: Sauerbrey fundamental frequency (Hz).
@@ -37,12 +41,17 @@ def export_csv(
     header_lines = [
         "# QCM-Dual Export",
         f"# Date: {now}",
-        f"# Sauerbrey f0: {f0:.0f} Hz, Area: {area} cm²",
     ]
+    if experiment_name:
+        header_lines.append(f"# Experiment: {experiment_name}")
+    if recording_index is not None:
+        header_lines.append(f"# Recording: {recording_index}")
+    header_lines.append(f"# Sauerbrey f0: {f0:.0f} Hz, Area: {area} cm\u00b2")
     if tare_a is not None:
         header_lines.append(f"# Tare A: {tare_a:.3f} Hz")
     if tare_b is not None:
         header_lines.append(f"# Tare B: {tare_b:.3f} Hz")
+    header_lines.append(f"# Points: {len(points)}")
     header_lines.append("#")
 
     columns = [
