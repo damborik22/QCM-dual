@@ -22,6 +22,8 @@ COLOR_A = "#4fc3f7"
 COLOR_B = "#ef5350"
 COLOR_DIFF = "#66bb6a"
 COLOR_MASS = "#ab47bc"
+COLOR_TEMP_A = "#26c6da"
+COLOR_TEMP_B = "#ffa726"
 COLOR_CROSSHAIR = "#888888"
 
 # Plot styling
@@ -34,8 +36,8 @@ TRACE_DEFS: list[tuple[str, str, str, str, str, bool]] = [
     ("freq_b",       "Freq B",  "B",    COLOR_B,    "Hz",           True),
     ("delta_f_diff", "\u0394f", "Diff", COLOR_DIFF, "Hz",           False),
     ("delta_m_diff", "\u0394m", "Diff", COLOR_MASS, "ng/cm\u00b2",  False),
-    ("temp_a",       "Temp A",  "A",    COLOR_A,    "\u00b0C",      False),
-    ("temp_b",       "Temp B",  "B",    COLOR_B,    "\u00b0C",      False),
+    ("temp_a",       "Temp A",  "A",    COLOR_TEMP_A, "\u00b0C",    False),
+    ("temp_b",       "Temp B",  "B",    COLOR_TEMP_B, "\u00b0C",    False),
 ]
 
 # Separators between groups (insert after these indices in TRACE_DEFS)
