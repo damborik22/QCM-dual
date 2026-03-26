@@ -167,10 +167,14 @@ class AppController:
             self._record_start_idx = len(self.engine.get_buffer())
             self.window.control_panel.record_btn.setText("\u23fa Recording...")
             self.window.statusBar().showMessage("Recording measurement", 0)
+            # Show recording region on plot
+            elapsed = time.time() - self._start_time if self._start_time else 0.0
+            self.window.plot_panel.start_recording_region(elapsed)
             logger.info("Recording started at buffer index %d", self._record_start_idx)
         else:
             self.window.control_panel.record_btn.setText("\u23fa Record")
             self.window.statusBar().clearMessage()
+            self.window.plot_panel.stop_recording_region()
             logger.info("Recording stopped")
 
     def get_recorded_points(self) -> list[MeasurementPoint]:
@@ -235,6 +239,10 @@ class AppController:
         self._plot_data["temp_b"].append(point.temp_b)
 
         self._update_plot()
+
+        # Grow recording region
+        if self._recording:
+            self.window.plot_panel.update_recording_region(elapsed)
 
         # Status bar
         self.window.points_label.setText(f"Points: {self._point_count}")
@@ -334,6 +342,9 @@ class AppController:
 
         # Switch plot back to frequency view
         self.window.plot_panel.switch_to_freq()
+        self.window.plot_panel.clear_recording_region()
+        self._recording = False
+        self.window.control_panel.record_btn.setChecked(False)
         logger.info("Data cleared")
 
     def _autosave(self, points: list[MeasurementPoint]) -> None:

@@ -151,6 +151,17 @@ class PlotPanel(QFrame):
             pen=pg.mkPen("#3a3a5c"),
         )
 
+        # Recording region highlight (semi-transparent red band)
+        self._record_region = pg.LinearRegionItem(
+            values=[0, 0],
+            orientation="vertical",
+            movable=False,
+            brush=pg.mkBrush(198, 40, 40, 40),   # #c62828 with low alpha
+            pen=pg.mkPen("#c62828", width=1),
+        )
+        self._record_region.setVisible(False)
+        self.plot_widget.addItem(self._record_region, ignoreBounds=True)
+
         # Wire action buttons
         self.tare_btn.clicked.connect(self.tare_requested.emit)
         self.autoscale_btn.clicked.connect(self._on_autoscale)
@@ -279,6 +290,32 @@ class PlotPanel(QFrame):
             if key in self.toggle_buttons:
                 self.toggle_buttons[key].setChecked(True)
         logger.info("Plot switched to frequency view")
+
+    def start_recording_region(self, start_time: float) -> None:
+        """Show the recording highlight starting at the given time.
+
+        Args:
+            start_time: Elapsed time (seconds) where recording begins.
+        """
+        self._record_region.setRegion([start_time, start_time])
+        self._record_region.setVisible(True)
+
+    def update_recording_region(self, end_time: float) -> None:
+        """Extend the recording highlight to the current time.
+
+        Args:
+            end_time: Elapsed time (seconds) for the right edge.
+        """
+        region = self._record_region.getRegion()
+        self._record_region.setRegion([region[0], end_time])
+
+    def stop_recording_region(self) -> None:
+        """Freeze the recording highlight at its current extent."""
+        pass  # keep visible so user sees what was recorded
+
+    def clear_recording_region(self) -> None:
+        """Hide the recording highlight."""
+        self._record_region.setVisible(False)
 
     def get_visible_trace_keys(self) -> list[str]:
         """Return list of currently visible trace keys.
