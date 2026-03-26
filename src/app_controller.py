@@ -11,16 +11,19 @@ from pathlib import Path
 
 import numpy as np
 from PySide6.QtCore import QTimer
+from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import QFileDialog, QMessageBox
 
 from src.core.acquisition import AcquisitionEngine
-from src.export.csv_export import export_csv
-from src.gui.export_dialog import ExportDialog
-from src.processing.sauerbrey import delta_f_to_delta_m
 from src.core.data_models import MeasurementPoint
 from src.core.method import Method, load_method, save_method
 from src.core.serial_manager import SerialManager
+from src.export.csv_export import export_csv
+from src.gui.about_dialog import AboutDialog
 from src.gui.device_settings_dialog import DeviceSettingsDialog
+from src.gui.export_dialog import ExportDialog
+from src.gui.sauerbrey_dialog import SauerbreyDialog
+from src.processing.sauerbrey import delta_f_to_delta_m
 from src.gui.main_window import MainWindow
 
 logger = logging.getLogger(__name__)
@@ -106,6 +109,15 @@ class AppController:
         w.action_save_method_as.triggered.connect(self._on_save_method_as)
         w.action_export_csv.triggered.connect(self._on_export_csv)
         w.action_device_settings.triggered.connect(self._on_device_settings)
+        w.action_sauerbrey.triggered.connect(self._on_sauerbrey_settings)
+        w.action_about.triggered.connect(self._on_about)
+
+        # Keyboard shortcuts
+        QShortcut(QKeySequence("Space"), w).activated.connect(self._on_toggle_start_stop)
+        QShortcut(QKeySequence("T"), w).activated.connect(self._on_tare)
+        QShortcut(QKeySequence("R"), w).activated.connect(
+            lambda: w.control_panel.record_btn.toggle()
+        )
 
     def _update_port_list(self) -> None:
         """Refresh available ports in the connection panel."""
@@ -544,6 +556,64 @@ class AppController:
         else:
             self.serial_manager.send_command("S" if enabled else "T")
         logger.info("Tune ch %s: %s", channel, "enabled" if enabled else "disabled")
+
+    # ------------------------------------------------------------------
+    # Sauerbrey settings dialog
+    # ------------------------------------------------------------------
+
+    def _on_sauerbrey_settings(self) -> None:
+        """Open the Sauerbrey crystal parameter dialog."""
+        dlg = SauerbreyDialog(self.window)
+        dlg.set_values(
+            self.engine.sauerbrey_f0,
+            self.engine.sauerbrey_area,
+            self.engine.sauerbrey_harmonic,
+        )
+        if dlg.exec() == SauerbreyDialog.DialogCode.Accepted:
+            self.engine.sauerbrey_f0 = dlg.f0
+            self.engine.sauerbrey_area = dlg.area
+            self.engine.sauerbrey_harmonic = dlg.harmonic
+            logger.info("Sauerbrey params: f0=%.0f, area=%.2f, n=%d",
+                        dlg.f0, dlg.area, dlg.harmonic)
+
+    # ------------------------------------------------------------------
+    # About dialog
+    # ------------------------------------------------------------------
+
+    def _on_about(self) -> None:
+        """Show the About dialog."""
+        AboutDialog(self.window).exec()
+
+    # ------------------------------------------------------------------
+    # Toggle start/stop (keyboard shortcut)
+    # ------------------------------------------------------------------
+
+    def _on_toggle_start_stop(self) -> None:
+        """Toggle between start and stop acquisition (Space key)."""
+        if self.engine._running:
+            self._on_stop()
+        else:
+            self._on_start()
+
+    # ------------------------------------------------------------------
+    # Window geometry save/restore
+    # ------------------------------------------------------------------
+
+    def save_window_state(self) -> None:
+        """Save window geometry to QSettings."""
+        from src.config import set_value
+        set_value("window/geometry", self.window.saveGeometry())
+        set_value("window/state", self.window.saveState())
+
+    def restore_window_state(self) -> None:
+        """Restore window geometry from QSettings."""
+        from src.config import get_value
+        geometry = get_value("window/geometry")
+        state = get_value("window/state")
+        if geometry:
+            self.window.restoreGeometry(geometry)
+        if state:
+            self.window.restoreState(state)
 
     # ------------------------------------------------------------------
     # Formatting helpers

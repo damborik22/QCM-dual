@@ -393,6 +393,33 @@ QSplitter::handle:vertical {{
 QDialog {{
     background-color: {COLOR_BG};
 }}
+
+/* --- AboutDialog labels ------------------------------------------------ */
+QLabel#aboutAppName {{
+    font-size: 18pt;
+    font-weight: bold;
+    color: {COLOR_TEXT_PRIMARY};
+}}
+
+QLabel#aboutVersion {{
+    font-size: 12pt;
+    color: {COLOR_TEXT_SECONDARY};
+}}
+
+QLabel#aboutDescription {{
+    font-size: 11pt;
+    color: {COLOR_TEXT_PRIMARY};
+}}
+
+QLabel#aboutManufacturer {{
+    font-size: 10pt;
+    color: {COLOR_TEXT_SECONDARY};
+}}
+
+QLabel#aboutTech {{
+    font-size: 10pt;
+    color: {COLOR_TEXT_SECONDARY};
+}}
 """
 
 logger.debug("Dark theme QSS loaded (%d characters)", len(DARK_THEME))

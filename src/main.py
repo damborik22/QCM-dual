@@ -23,8 +23,11 @@ def main() -> None:
     app.setStyleSheet(DARK_THEME)
 
     window = MainWindow()
-    controller = AppController(window)  # noqa: F841 — prevent GC
+    controller = AppController(window)
+    controller.restore_window_state()
     window.show()
+
+    app.aboutToQuit.connect(controller.save_window_state)
 
     sys.exit(app.exec())
 
