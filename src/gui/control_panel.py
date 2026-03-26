@@ -33,8 +33,9 @@ class ControlPanel(QFrame):
     """Horizontal panel with measurement controls.
 
     Attributes:
-        start_btn: QPushButton to start continuous measurement.
-        stop_btn: QPushButton to stop measurement.
+        start_btn: QPushButton to start receiving data from device.
+        stop_btn: QPushButton to stop receiving data.
+        record_btn: QPushButton (checkable) to start/stop recording measurement.
         mode_1x: QRadioButton for 1x/s rate.
         mode_5x: QRadioButton for 5x/s rate.
         rate_group: QButtonGroup containing the two rate radios.
@@ -52,14 +53,26 @@ class ControlPanel(QFrame):
         layout.setContentsMargins(8, 4, 8, 4)
         layout.setSpacing(6)
 
-        # --- Start / Stop buttons ----------------------------------------
+        # --- Start / Stop receiving ----------------------------------------
         self.start_btn = QPushButton("\u25b6 Start")
-        self.start_btn.setToolTip("Start continuous measurement")
+        self.start_btn.setToolTip("Start receiving data from device")
         self.stop_btn = QPushButton("\u23f9 Stop")
-        self.stop_btn.setToolTip("Stop measurement")
+        self.stop_btn.setToolTip("Stop receiving data")
 
         layout.addWidget(self.start_btn)
         layout.addWidget(self.stop_btn)
+
+        layout.addWidget(_make_vsep())
+
+        # --- Record measurement --------------------------------------------
+        self.record_btn = QPushButton("\u23fa Record")
+        self.record_btn.setToolTip("Start/stop recording measurement")
+        self.record_btn.setCheckable(True)
+        self.record_btn.setStyleSheet(
+            "QPushButton { color: #e0e0e0; }"
+            "QPushButton:checked { background: #c62828; color: #ffffff; font-weight: bold; }"
+        )
+        layout.addWidget(self.record_btn)
 
         layout.addWidget(_make_vsep())
 

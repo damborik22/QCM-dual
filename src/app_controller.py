@@ -43,6 +43,8 @@ class AppController:
         self._error_count = 0
         self._tared = False
         self._ref_channel: str = "None"
+        self._recording = False
+        self._record_start_idx: int = 0  # buffer index when recording started
 
         # Plot data buffers (parallel arrays for performance)
         self._plot_times: deque[float] = deque(maxlen=86400)
@@ -86,6 +88,7 @@ class AppController:
             lambda checked: self._on_mode_changed(fast=True) if checked else None
         )
         w.control_panel.ref_combo.currentTextChanged.connect(self._on_ref_changed)
+        w.control_panel.record_btn.toggled.connect(self._on_record_toggled)
 
         # Acquisition engine
         self.engine.new_point.connect(self._on_new_point)
@@ -156,6 +159,28 @@ class AppController:
         """Switch measurement rate."""
         self.engine.set_mode(fast=fast)
         self.window.mode_label.setText("5\u00d7/s" if fast else "1\u00d7/s")
+
+    def _on_record_toggled(self, recording: bool) -> None:
+        """Start or stop recording a measurement."""
+        self._recording = recording
+        if recording:
+            self._record_start_idx = len(self.engine.get_buffer())
+            self.window.control_panel.record_btn.setText("\u23fa Recording...")
+            self.window.statusBar().showMessage("Recording measurement", 0)
+            logger.info("Recording started at buffer index %d", self._record_start_idx)
+        else:
+            self.window.control_panel.record_btn.setText("\u23fa Record")
+            self.window.statusBar().clearMessage()
+            logger.info("Recording stopped")
+
+    def get_recorded_points(self) -> list[MeasurementPoint]:
+        """Return only the points captured during the last recording.
+
+        Returns:
+            List of MeasurementPoint from record start to current/end.
+        """
+        buf = self.engine.get_buffer()
+        return buf[self._record_start_idx:]
 
     # ------------------------------------------------------------------
     # Data handling
@@ -335,8 +360,13 @@ class AppController:
     # ------------------------------------------------------------------
 
     def _on_export_csv(self) -> None:
-        """Export measurement data to CSV file."""
-        points = self.engine.get_buffer()
+        """Export measurement data to CSV file.
+
+        If a recording was made, exports only recorded points.
+        Otherwise exports the entire buffer.
+        """
+        recorded = self.get_recorded_points()
+        points = recorded if recorded else self.engine.get_buffer()
         if not points:
             logger.warning("No data to export")
             return

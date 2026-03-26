@@ -235,17 +235,6 @@ class MainWindow(QMainWindow):
 
         view_menu.addSeparator()
 
-        self.action_display_all = QAction("Display: All channels", self)
-        self.action_display_all.setCheckable(True)
-        self.action_display_all.setChecked(True)
-        view_menu.addAction(self.action_display_all)
-
-        self.action_display_diff = QAction("Display: Differential only", self)
-        self.action_display_diff.setCheckable(True)
-        view_menu.addAction(self.action_display_diff)
-
-        view_menu.addSeparator()
-
         self.action_reset_layout = QAction("Reset layout", self)
         view_menu.addAction(self.action_reset_layout)
 
