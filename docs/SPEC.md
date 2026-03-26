@@ -252,19 +252,23 @@ Right side: **Control Panel**
 Three side-by-side **DisplayPanel** cards (QFrame with styled border):
 
 **Card A** and **Card B** each show:
-| Label        | Value format          | Font     |
-|--------------|-----------------------|----------|
-| Frequency    | 9 979 521.207 Hz     | 18pt mono|
-| Δf           | −12.35 Hz            | 14pt mono|
-| Δm           | 54.63 ng/cm²         | 14pt mono|
-| ACG          | 1.4406 V             | 12pt mono|
-| Temperature  | 23.4 °C (or "---")   | 12pt mono|
+| Label        | Value format                    | Font     |
+|--------------|---------------------------------|----------|
+| Frequency    | 9 979 521.207 Hz (or −12.35 Hz after tare) | 18pt mono|
+| Temperature  | 23.4 °C (or "---")              | 12pt mono|
 
-**Card Diff (A−B)** shows the differential signal:
+Frequency shows raw Hz before tare. After tare, it shows the relative
+shift (current − tare reference), which is what matters during the experiment.
+
+**Card Diff** shows the inter-channel differential (only visible when a
+reference channel is selected):
 | Label        | Value format          | Font     |
 |--------------|-----------------------|----------|
-| Δf (A−B)     | −3.21 Hz             | 18pt mono|
-| Δm (A−B)     | 14.18 ng/cm²         | 14pt mono|
+| Δf           | −3.21 Hz             | 18pt mono|
+| Δm           | 14.18 ng/cm²         | 14pt mono|
+
+Δf = Freq(sample) − Freq(reference), both after tare.
+Card title updates to show direction: "Diff (B−A)" or "Diff (A−B)".
 
 - Card A has blue left border accent (#4fc3f7)
 - Card B has red left border accent (#ef5350)

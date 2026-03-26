@@ -114,7 +114,7 @@ class ChannelCard(QFrame):
             )
             lbl.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
-            val = QLabel(_PLACEHOLDER if key.startswith("delta") or key == "freq" else _ZERO)
+            val = QLabel(_PLACEHOLDER if key in ("freq", "delta_f", "delta_m") else _ZERO)
             val.setStyleSheet(
                 f"font-family: '{MONO_FONT}';"
                 f"font-size: {font_pt}pt;"
@@ -161,14 +161,13 @@ class ChannelCard(QFrame):
     def _ab_rows() -> list[tuple[str, str, int]]:
         """Row definitions for channel A or B cards.
 
+        Frequency shows raw Hz before tare, relative Hz after tare.
+
         Returns:
             List of (label_text, dict_key, font_point_size).
         """
         return [
             ("Frequency", "freq", 18),
-            ("\u0394f", "delta_f", 14),
-            ("\u0394m", "delta_m", 14),
-            ("ACG", "acg", 12),
             ("Temperature", "temp", 12),
         ]
 
@@ -176,12 +175,15 @@ class ChannelCard(QFrame):
     def _diff_rows() -> list[tuple[str, str, int]]:
         """Row definitions for the differential card.
 
+        Δf = Sample − Reference (direction set by set_diff_direction).
+        Δm = mass change via Sauerbrey from Δf.
+
         Returns:
             List of (label_text, dict_key, font_point_size).
         """
         return [
-            ("\u0394f (A\u2212B)", "delta_f", 18),
-            ("\u0394m (A\u2212B)", "delta_m", 14),
+            ("\u0394f", "delta_f", 18),
+            ("\u0394m", "delta_m", 14),
         ]
 
     # ------------------------------------------------------------------
