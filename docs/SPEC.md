@@ -242,13 +242,10 @@ Left side: **Connection Panel**
 - QLabel with colored dot: green=connected, red=disconnected, yellow=connecting
 
 Right side: **Control Panel**
-- QPushButtons: Start (▶), Stop (⏹), Single (①)
+- QPushButtons: Start (▶), Stop (⏹)
 - QButtonGroup with QRadioButtons: "1×/s" and "5×/s"
 - QCheckBox × 2: "Tune A", "Tune B" (auto-tuning)
-- QComboBox × 2: I/O mode for ch A and ch B
-  Options: "NC (off)", "Ext. input", "Lever out", "10 MHz out"
-- QPushButtons × 4: "T+A", "T−A", "T+B", "T−B" (temperature calibration ±0.1°C)
-  Sends commands D/E (ch A) and U/V (ch B). Current offset shown in tooltip.
+- I/O mode and temperature calibration are in **Device > Device settings...** dialog
 
 ### Zone 2: Numeric displays (fixed height ~140px)
 
@@ -313,7 +310,8 @@ Permanent widgets (left to right):
 - **File**: New Method, Open Method..., Save Method, Save Method As...,
   separator, Recent Methods >,
   separator, Export CSV, Export XLSX, Export HDF5, separator, Exit
-- **Device**: Connect, Disconnect, separator, Simulator mode, separator, Send command...
+- **Device**: Connect, Disconnect, separator, Simulator mode, separator,
+  Device settings... (I/O mode + temp calibration), separator, Send command...
 - **View**: Show/hide Connection panel, Show/hide Control panel,
   separator, Display: All channels, Display: Differential only,
   separator, Reset layout

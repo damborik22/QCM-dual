@@ -207,6 +207,11 @@ class MainWindow(QMainWindow):
 
         device_menu.addSeparator()
 
+        self.action_device_settings = QAction("Device settings...", self)
+        device_menu.addAction(self.action_device_settings)
+
+        device_menu.addSeparator()
+
         self.action_send_command = QAction("Send command...", self)
         device_menu.addAction(self.action_send_command)
 
