@@ -6,4 +6,6 @@ __pycache__/
 dist/
 build/
 .venv/
-*.spec
+
+# Keep qcm_dual.spec, ignore others
+!qcm_dual.spec

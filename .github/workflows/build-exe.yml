@@ -24,12 +24,6 @@ jobs:
           pip install pyinstaller
           pip install PySide6>=6.6 pyqtgraph>=0.13 pyserial>=3.5 numpy>=1.24 scipy>=1.11
 
-      - name: List files (debug)
-        run: |
-          dir
-          echo "---"
-          dir qcm_dual.spec
-
       - name: Build EXE
         run: pyinstaller qcm_dual.spec
 
