@@ -9,6 +9,7 @@ import logging
 from PySide6.QtWidgets import (
     QButtonGroup,
     QCheckBox,
+    QComboBox,
     QFrame,
     QHBoxLayout,
     QLabel,
@@ -40,6 +41,7 @@ class ControlPanel(QFrame):
         rate_group: QButtonGroup containing the two rate radios.
         tune_a_cb: QCheckBox for auto-tune channel A.
         tune_b_cb: QCheckBox for auto-tune channel B.
+        ref_combo: QComboBox for reference channel selection.
     """
 
     def __init__(self, parent: "QWidget | None" = None) -> None:
@@ -93,6 +95,22 @@ class ControlPanel(QFrame):
 
         layout.addWidget(self.tune_a_cb)
         layout.addWidget(self.tune_b_cb)
+
+        layout.addWidget(_make_vsep())
+
+        # --- Reference channel selector -----------------------------------
+        ref_label = QLabel("Reference:")
+        ref_label.setProperty("role", "secondary")
+        layout.addWidget(ref_label)
+
+        self.ref_combo = QComboBox()
+        self.ref_combo.addItems(["None", "Ch A", "Ch B"])
+        self.ref_combo.setToolTip(
+            "Select reference channel for differential measurement.\n"
+            "Ch A as ref → Diff = B − A\n"
+            "Ch B as ref → Diff = A − B"
+        )
+        layout.addWidget(self.ref_combo)
 
         layout.addStretch()
 

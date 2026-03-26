@@ -27,21 +27,20 @@ COLOR_CROSSHAIR = "#888888"
 PLOT_BG = "#1a1a2e"
 
 # Trace definitions: (key, label, channel, color, unit, default_on)
+# Diff direction is determined by the Reference channel selector in ControlPanel.
 TRACE_DEFS: list[tuple[str, str, str, str, str, bool]] = [
-    ("freq_a",       "Freq A",        "A",    COLOR_A,    "Hz",           False),
-    ("freq_b",       "Freq B",        "B",    COLOR_B,    "Hz",           False),
-    ("delta_f_a",    "\u0394f A",     "A",    COLOR_A,    "Hz",           True),
-    ("delta_f_b",    "\u0394f B",     "B",    COLOR_B,    "Hz",           True),
-    ("delta_m_a",    "\u0394m A",     "A",    COLOR_A,    "ng/cm\u00b2",  False),
-    ("delta_m_b",    "\u0394m B",     "B",    COLOR_B,    "ng/cm\u00b2",  False),
-    ("acg_a",        "ACG A",         "A",    COLOR_A,    "V",            False),
-    ("acg_b",        "ACG B",         "B",    COLOR_B,    "V",            False),
-    ("temp_a",       "Temp A",        "A",    COLOR_A,    "\u00b0C",      False),
-    ("temp_b",       "Temp B",        "B",    COLOR_B,    "\u00b0C",      False),
-    ("delta_f_ab",   "\u0394f(A\u2212B)", "Diff", COLOR_DIFF, "Hz",      False),
-    ("delta_f_ba",   "\u0394f(B\u2212A)", "Diff", COLOR_DIFF, "Hz",      False),
-    ("delta_m_ab",   "\u0394m(A\u2212B)", "Diff", COLOR_DIFF, "ng/cm\u00b2", False),
-    ("delta_m_ba",   "\u0394m(B\u2212A)", "Diff", COLOR_DIFF, "ng/cm\u00b2", False),
+    ("freq_a",       "Freq A",       "A",    COLOR_A,    "Hz",           False),
+    ("freq_b",       "Freq B",       "B",    COLOR_B,    "Hz",           False),
+    ("delta_f_a",    "\u0394f A",    "A",    COLOR_A,    "Hz",           True),
+    ("delta_f_b",    "\u0394f B",    "B",    COLOR_B,    "Hz",           True),
+    ("delta_m_a",    "\u0394m A",    "A",    COLOR_A,    "ng/cm\u00b2",  False),
+    ("delta_m_b",    "\u0394m B",    "B",    COLOR_B,    "ng/cm\u00b2",  False),
+    ("acg_a",        "ACG A",        "A",    COLOR_A,    "V",            False),
+    ("acg_b",        "ACG B",        "B",    COLOR_B,    "V",            False),
+    ("temp_a",       "Temp A",       "A",    COLOR_A,    "\u00b0C",      False),
+    ("temp_b",       "Temp B",       "B",    COLOR_B,    "\u00b0C",      False),
+    ("delta_f_diff", "\u0394f Diff", "Diff", COLOR_DIFF, "Hz",           False),
+    ("delta_m_diff", "\u0394m Diff", "Diff", COLOR_DIFF, "ng/cm\u00b2",  False),
 ]
 
 # Separators between groups (insert after these indices in TRACE_DEFS)
