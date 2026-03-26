@@ -416,30 +416,34 @@ class AppController:
             "harmonic": self.engine.sauerbrey_harmonic,
         }
 
+        # Always export full buffer with recording column
+        full_path = folder / f"{name}.csv"
+        export_csv(
+            buf, full_path,
+            experiment_name=name,
+            recordings=self._recordings if self._recordings else None,
+            **export_kwargs,
+        )
+        exported_files = [full_path]
+
+        # Also export individual recording files
         if self._recordings and dialog.selected_recordings:
-            # Export each selected recording as a separate file
             for rec_idx in dialog.selected_recordings:
                 start, end = self._recordings[rec_idx]
                 points = buf[start:end]
                 if not points:
                     continue
                 file_num = rec_idx + 1
-                path = folder / f"{name}_{file_num:03d}.csv"
+                rec_path = folder / f"{name}_{file_num:03d}.csv"
                 export_csv(
-                    points, path,
+                    points, rec_path,
                     experiment_name=name,
                     recording_index=file_num,
                     **export_kwargs,
                 )
-            logger.info(
-                "Exported %d recordings to %s",
-                len(dialog.selected_recordings), folder,
-            )
-        else:
-            # No recordings — export entire buffer
-            path = folder / f"{name}.csv"
-            export_csv(buf, path, experiment_name=name, **export_kwargs)
-            logger.info("Exported full buffer to %s", path)
+                exported_files.append(rec_path)
+
+        logger.info("Exported %d files to %s", len(exported_files), folder)
 
     # ------------------------------------------------------------------
     # Reference channel

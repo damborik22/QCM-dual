@@ -95,3 +95,30 @@ class TestCSVExport:
         lines = path.read_text().splitlines()
         data_lines = [l for l in lines if not l.startswith("#")]
         assert len(data_lines) == 1  # just column header
+
+    def test_recording_column(self, tmp_path: Path, sample_points: list) -> None:
+        """Full export with recordings adds a 'recording' column."""
+        path = tmp_path / "test.csv"
+        # Points 1-2 are recording 1, point 4 is recording 2
+        recordings = [(1, 3), (3, 4)]
+        export_csv(sample_points, path, recordings=recordings)
+        lines = path.read_text().splitlines()
+        data_lines = [l for l in lines if not l.startswith("#")]
+        # Header should have recording column
+        assert "recording" in data_lines[0]
+        # 15 columns (14 + recording)
+        fields = data_lines[1].split("\t")
+        assert len(fields) == 15
+        # Check recording values: point 0=0, point 1=1, point 2=1, point 3=2, point 4=0
+        rec_values = [l.split("\t")[-1] for l in data_lines[1:]]
+        assert rec_values == ["0", "1", "1", "2", "0"]
+
+    def test_no_recording_column_for_individual(self, tmp_path: Path, sample_points: list) -> None:
+        """Individual recording export has no recording column."""
+        path = tmp_path / "test.csv"
+        export_csv(sample_points, path, recording_index=1)
+        lines = path.read_text().splitlines()
+        data_lines = [l for l in lines if not l.startswith("#")]
+        assert "recording" not in data_lines[0]
+        fields = data_lines[1].split("\t")
+        assert len(fields) == 14
