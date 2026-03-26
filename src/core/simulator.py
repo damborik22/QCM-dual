@@ -28,6 +28,7 @@ class QCMSimulator:
         self._base_freq_b = base_freq_b
         self._device_time = 0
         self._fast_mode = False
+        self._last_command = "A"
 
         # Random walk state
         self._freq_a = base_freq_a
@@ -44,6 +45,19 @@ class QCMSimulator:
             fast: True for 5x/s (long packets), False for 1x/s (short).
         """
         self._fast_mode = fast
+        self._last_command = "G" if fast else "F"
+
+    def process_command(self, cmd: str) -> None:
+        """Process a received command, updating internal state.
+
+        Args:
+            cmd: Single character command (A-V).
+        """
+        self._last_command = cmd
+        if cmd == "F":
+            self._fast_mode = False
+        elif cmd == "G":
+            self._fast_mode = True
 
     def generate_short_packet(self) -> str:
         """Return a complete short-format data line with valid checksum.
@@ -63,7 +77,7 @@ class QCMSimulator:
             "qcm09",
             "5f",
             "0",
-            "A",
+            self._last_command,
             f"{self._device_time:06d}",
             f"{voltage:.5f}",
             f"{temp_a:.1f}",
@@ -98,7 +112,7 @@ class QCMSimulator:
             "QCM09",
             "5f",
             "0",
-            "A",
+            self._last_command,
             f"{self._device_time:06d}",
             f"{voltage:.5f}",
             # Channel A
