@@ -290,6 +290,9 @@ Card title updates to show direction: "Diff (B−A)" or "Diff (A−B)".
 - **On Tare**: auto-switches to Δf Diff view (user can toggle back manually)
 - Diff direction determined by Reference selector: Ch A ref → B−A, Ch B ref → A−B
 - QPushButtons: Tare, Autoscale, Clear (right side)
+- **Clear behavior**: (1) auto-saves buffer to `~/.qcm-dual/autosave/<timestamp>.csv`
+  as a safety net, (2) shows confirmation dialog: Save / Don't Save / Cancel.
+  Save opens Export dialog then clears. Don't Save clears immediately. Cancel aborts.
 
 Plot features:
 - pyqtgraph PlotWidget
