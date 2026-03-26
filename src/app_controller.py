@@ -44,7 +44,8 @@ class AppController:
         self._tared = False
         self._ref_channel: str = "None"
         self._recording = False
-        self._record_start_idx: int = 0  # buffer index when recording started
+        self._record_start_idx: int = 0
+        self._recordings: list[tuple[int, int]] = []  # [(start_idx, end_idx), ...]
 
         # Plot data buffers (parallel arrays for performance)
         self._plot_times: deque[float] = deque(maxlen=86400)
@@ -167,24 +168,35 @@ class AppController:
             self._record_start_idx = len(self.engine.get_buffer())
             self.window.control_panel.record_btn.setText("\u23fa Recording...")
             self.window.statusBar().showMessage("Recording measurement", 0)
-            # Show recording region on plot
             elapsed = time.time() - self._start_time if self._start_time else 0.0
             self.window.plot_panel.start_recording_region(elapsed)
             logger.info("Recording started at buffer index %d", self._record_start_idx)
         else:
+            end_idx = len(self.engine.get_buffer())
+            self._recordings.append((self._record_start_idx, end_idx))
             self.window.control_panel.record_btn.setText("\u23fa Record")
             self.window.statusBar().clearMessage()
             self.window.plot_panel.stop_recording_region()
-            logger.info("Recording stopped")
+            logger.info("Recording stopped, saved range [%d:%d]", self._record_start_idx, end_idx)
 
-    def get_recorded_points(self) -> list[MeasurementPoint]:
-        """Return only the points captured during the last recording.
+    def get_recorded_points(self, index: int = -1) -> list[MeasurementPoint]:
+        """Return points from a specific recording.
+
+        Args:
+            index: Recording index (-1 for most recent).
 
         Returns:
-            List of MeasurementPoint from record start to current/end.
+            List of MeasurementPoint for that recording, or empty list.
         """
+        if not self._recordings:
+            return []
+        start, end = self._recordings[index]
         buf = self.engine.get_buffer()
-        return buf[self._record_start_idx:]
+        return buf[start:end]
+
+    def get_all_recordings(self) -> list[tuple[int, int]]:
+        """Return list of all recording ranges (start_idx, end_idx)."""
+        return list(self._recordings)
 
     # ------------------------------------------------------------------
     # Data handling
@@ -344,6 +356,7 @@ class AppController:
         self.window.plot_panel.switch_to_freq()
         self.window.plot_panel.clear_recording_region()
         self._recording = False
+        self._recordings.clear()
         self.window.control_panel.record_btn.setChecked(False)
         logger.info("Data cleared")
 
