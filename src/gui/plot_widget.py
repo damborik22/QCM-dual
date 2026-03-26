@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 COLOR_A = "#4fc3f7"
 COLOR_B = "#ef5350"
 COLOR_DIFF = "#66bb6a"
+COLOR_MASS = "#ab47bc"
 COLOR_CROSSHAIR = "#888888"
 
 # Plot styling
@@ -32,7 +33,7 @@ TRACE_DEFS: list[tuple[str, str, str, str, str, bool]] = [
     ("freq_a",       "Freq A",  "A",    COLOR_A,    "Hz",           True),
     ("freq_b",       "Freq B",  "B",    COLOR_B,    "Hz",           True),
     ("delta_f_diff", "\u0394f", "Diff", COLOR_DIFF, "Hz",           False),
-    ("delta_m_diff", "\u0394m", "Diff", COLOR_DIFF, "ng/cm\u00b2",  False),
+    ("delta_m_diff", "\u0394m", "Diff", COLOR_MASS, "ng/cm\u00b2",  False),
     ("temp_a",       "Temp A",  "A",    COLOR_A,    "\u00b0C",      False),
     ("temp_b",       "Temp B",  "B",    COLOR_B,    "\u00b0C",      False),
 ]
